@@ -1,0 +1,22 @@
+# API Keys & Secrets
+.env
+secret.py
+config/keys.json
+config/settings.yaml
+
+# Dependencies
+__pycache__/
+*.pyc
+venv/
+env/
+
+# Trading Logs & DBs
+*.json
+*.csv
+*.db
+backtest_cache/
+logs/
+
+# Editor
+.vscode/
+.idea/
