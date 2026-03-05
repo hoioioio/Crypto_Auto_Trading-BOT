@@ -53,28 +53,21 @@
 
 ## 📁 프로젝트 아키텍처 (Project Architecture)
 
-```text
-Crypto_Auto_Trading-BOT/
-├── src/
-│   ├── indicators.py      # Custom Indicators (AWMA, KAMA 계산)
-│   ├── strategy.py        # Dynamic Scaling & Early Exit 로직
-│   ├── execution.py       # CCXT Order Wrapper, Hard SL 방어망, Paper Trading
-│   └── data_loader.py     # History + Live Data Sync 파이프라인
-│
-├── research/
-│   ├── optimizer.py       # Grid Search Parameter Optimizer
-│   └── backtester.py      # 과거 데이터 전진 분석(Walk-forward) 엔진
-│
-├── config/                # 프로덕션 환경 분리
-│   ├── settings.yaml      # 트레이딩 파라미터 (레버리지, 타겟 기댓값 등)
-│   └── .env               # API Key 및 텔레그램 토큰 관리 (.gitignore 처리됨)
-│
-├── utils/                 # 모니터링 및 로깅
-│   └── logger.py          # 시스템 알림 로깅
-│
-├── main.py                # 24/365 봇 실행 메인 루프
-└── requirements.txt       # 의존성 패키지 명세
-```
+* 📁 **`src/`**
+  * 📄 [`indicators.py`](./src/indicators.py) - Custom Indicators (AWMA, KAMA 계산)
+  * 📄 [`strategy.py`](./src/strategy.py) - Dynamic Scaling & Early Exit 로직
+  * 📄 [`execution.py`](./src/execution.py) - CCXT Order Wrapper, Hard SL 방어망, Paper Trading
+  * 📄 [`data_loader.py`](./src/data_loader.py) - History + Live Data Sync 파이프라인
+* 📁 **`research/`**
+  * 📄 [`optimizer.py`](./research/optimizer.py) - Grid Search Parameter Optimizer
+  * 📄 [`backtester.py`](./research/backtester.py) - 과거 데이터 전진 분석(Walk-forward) 엔진
+* 📁 **`config/`**
+  * 📄 [`settings.yaml`](./config/settings.yaml) - 트레이딩 파라미터 (레버리지, 타겟 기댓값 등)
+  * 📄 `.env` - API Key 및 텔레그램 토큰 관리 (.gitignore 처리됨)
+* 📁 **`utils/`**
+  * 📄 [`logger.py`](./utils/logger.py) - 시스템 알림 로깅
+* 📄 [`main.py`](./main.py) - 24/365 봇 실행 메인 루프
+* 📄 [`requirements.txt`](./requirements.txt) - 의존성 패키지 명세
 
 ---
 
