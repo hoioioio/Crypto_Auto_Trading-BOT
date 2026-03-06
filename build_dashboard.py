@@ -1,311 +1,403 @@
 import pandas as pd
 import json
 
-# Read the latest CSV
-csv_path = 'c:/backtest_trades_2020_now.csv'
-df = pd.read_csv(csv_path)
+def build():
+    # Read the latest CSV
+    csv_path = 'c:/backtest_trades_2020_now.csv'
+    df = pd.read_csv(csv_path)
 
-# Prepare data for JS
-trades = []
-for _, row in df.iterrows():
-    trades.append({
-        'symbol': row['Symbol'],
-        'side': row['Side'],
-        'entry_time': row['EntryTime'],
-        'exit_time': row['ExitTime'],
-        'pnl': float(row['PnL']),
-        'roi': float(str(row['PnL%']).replace('%', '')) if 'PnL%' in row and pd.notnull(row['PnL%']) else 0.0
-    })
+    # Prepare data for JS
+    trades = []
+    for _, row in df.iterrows():
+        trades.append({
+            'symbol': row['Symbol'],
+            'side': row['Side'],
+            'entry_time': row['EntryTime'],
+            'exit_time': row['ExitTime'],
+            'pnl': float(row['PnL']),
+            'roi': float(str(row['PnL%']).replace('%', '')) if 'PnL%' in row and pd.notnull(row['PnL%']) else 0.0
+        })
 
-trades_json = json.dumps(trades)
+    trades_json = json.dumps(trades)
 
-html_content = f"""<!DOCTYPE html>
+    html_content = f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Auto Trading Bot - Backtest Viewer</title>
+    <title>Crypto Auto Trading Bot - Advanced Backtest Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {{
-            --bg-color: #0f172a;
-            --panel-bg: #1e293b;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --accent: #3b82f6;
-            --success: #10b981;
-            --danger: #ef4444;
+            --bg-color: #f8f9fa;
+            --panel-bg: #ffffff;
+            --text-color: #212529;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+            --accent: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --header-bg: #e9ecef;
+            --row-alt: #f1f3f5;
         }}
         body {{
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 20px;
         }}
         .container {{
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
         }}
-        .header {{
-            text-align: center;
-            margin-bottom: 30px;
-        }}
-        .header h1 {{
-            margin: 0 0 10px 0;
-            background: linear-gradient(to right, #60a5fa, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }}
+        h1, h2 {{ color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 30px; }}
+        
         .controls {{
-            background: var(--panel-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+            background: var(--panel-bg); padding: 20px; border-radius: 8px;
+            border: 1px solid var(--border-color); display: flex; gap: 20px;
+            align-items: center; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }}
-        .control-group {{
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }}
-        .control-group label {{
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }}
+        .control-group {{ display: flex; flex-direction: column; gap: 5px; }}
+        .control-group label {{ font-size: 0.85rem; color: var(--text-muted); font-weight: bold; }}
         input[type="date"] {{
-            background: var(--bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 1rem;
-            color-scheme: dark;
+            padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 1rem;
         }}
         button {{
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            margin-top: auto;
+            background: var(--accent); color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: auto;
         }}
         button:hover {{ opacity: 0.9; }}
         
-        .stats-grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+        .summary {{ display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; }}
+        .summary-card {{ 
+            flex: 1 1 200px; background-color: var(--panel-bg); padding: 20px; 
+            border-radius: 8px; text-align: center; border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }}
-        .stat-card {{
-            background: var(--panel-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            text-align: center;
-        }}
-        .stat-value {{
-            font-size: 2rem;
-            font-weight: bold;
-            margin: 10px 0 5px 0;
-        }}
-        .stat-label {{
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }}
-        .chart-container {{
-            background: var(--panel-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            height: 400px;
-        }}
+        .summary-card h3 {{ margin-top: 0; color: #495057; font-size: 1.1rem; border: none; padding: 0; }}
+        .stat-value {{ font-size: 24px; font-weight: bold; margin-top: 10px; }}
         .positive {{ color: var(--success); }}
         .negative {{ color: var(--danger); }}
+        
+        .charts {{ display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; }}
+        .chart-box {{ 
+            flex: 1 1 500px; background: var(--panel-bg); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            height: 350px;
+        }}
+        .chart-box-wide {{
+            flex: 1 1 100%; background: var(--panel-bg); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            height: 400px;
+        }}
+        
+        .data-section {{ display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 40px; }}
+        .data-table-wrapper {{ flex: 1 1 500px; background: var(--panel-bg); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); border: 1px solid var(--border-color); overflow-x: auto; }}
+        table {{ border-collapse: collapse; width: 100%; margin-top: 15px; font-size: 0.9rem; }}
+        th, td {{ border: 1px solid var(--border-color); padding: 10px 12px; text-align: right; }}
+        th {{ background-color: var(--header-bg); text-align: center; font-weight: bold; }}
+        td:first-child {{ text-align: left; font-weight: bold; }}
+        tbody tr:nth-child(even) {{ background-color: var(--row-alt); }}
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Interactive Backtest Viewer</h1>
-            <p style="color: var(--text-muted)">자유롭게 기간을 설정하여 백테스트 성과를 분석해보세요.</p>
-        </div>
-
+        <h1 style="text-align: center; border: none;">📈 성과 분석 리포트 (Interactive Dashboard)</h1>
+        
         <div class="controls">
             <div class="control-group">
                 <label>시작일 (Start Date)</label>
-                <input type="date" id="startDate" value="2020-01-01">
+                <input type="date" id="startDate">
             </div>
             <div class="control-group">
                 <label>종료일 (End Date)</label>
-                <input type="date" id="endDate" value="2026-12-31">
+                <input type="date" id="endDate">
             </div>
             <button onclick="updateDashboard()">조회하기 (Apply)</button>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">총 수익금 (Net Profit)</div>
+        <h2>📊 전체 기간 요약</h2>
+        <div class="summary">
+            <div class="summary-card">
+                <h3>총 손익 (Total PnL)</h3>
                 <div class="stat-value" id="valNetProfit">$0</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">승률 (Win Rate)</div>
-                <div class="stat-value" id="valWinRate">0%</div>
+            <div class="summary-card">
+                <h3>총 거래 (Total Trades)</h3>
+                <div class="stat-value" id="valTrades" style="color: #212529;">0</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">최대 낙폭 (MDD)</div>
+            <div class="summary-card">
+                <h3>승률 (Win Rate)</h3>
+                <div class="stat-value" id="valWinRate" style="color: #212529;">0%</div>
+            </div>
+            <div class="summary-card">
+                <h3>승/패 (W/L)</h3>
+                <div class="stat-value" id="valWL" style="color: #212529;">0 / 0</div>
+            </div>
+            <div class="summary-card">
+                <h3>최대 낙폭 (MDD)</h3>
                 <div class="stat-value negative" id="valMDD">0%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">총 거래 횟수 (Total Trades)</div>
-                <div class="stat-value" id="valTrades">0</div>
             </div>
         </div>
 
-        <div class="chart-container">
-            <canvas id="pnlChart"></canvas>
+        <h2>🎨 시각화 차트</h2>
+        <div class="charts">
+            <div class="chart-box">
+                <h3 style="text-align:center; margin-top:0;">월별 손익 (Monthly PnL)</h3>
+                <canvas id="monthlyChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3 style="text-align:center; margin-top:0;">누적 손익 (Cumulative PnL)</h3>
+                <canvas id="cumulativeChart"></canvas>
+            </div>
+        </div>
+        <div class="charts">
+            <div class="chart-box-wide">
+                <h3 style="text-align:center; margin-top:0;">종목별 총 손익 (Total PnL by Symbol)</h3>
+                <canvas id="symbolChart"></canvas>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <div class="data-table-wrapper">
+                <h2 style="margin-top:0;">📋 월별 상세 데이터</h2>
+                <table id="monthlyTable">
+                    <thead>
+                        <tr>
+                            <th>월 (Month)</th>
+                            <th>총 손익 (Total PnL)</th>
+                            <th>총 거래</th>
+                            <th>승/패</th>
+                            <th>승률 (%)</th>
+                            <th>평균 수익</th>
+                            <th>평균 손실</th>
+                            <th>손익비 (Payoff)</th>
+                            <th>누적 수익</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="data-table-wrapper">
+                <h2 style="margin-top:0;">📈 종목별 상세 데이터</h2>
+                <table id="symbolTable">
+                    <thead>
+                        <tr>
+                            <th>종목 (Symbol)</th>
+                            <th>총 손익 (Total PnL)</th>
+                            <th>총 거래</th>
+                            <th>승/패</th>
+                            <th>승률 (%)</th>
+                            <th>평균 수익</th>
+                            <th>평균 손실</th>
+                            <th>손익비 (Payoff)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
         const allTrades = {trades_json};
-        let pnlChart = null;
+        
+        let charts = {{}};
+
+        function formatUSD(val) {{
+            return (val >= 0 ? '$' : '-$') + Math.abs(val).toLocaleString(undefined, {{minimumFractionDigits: 2, maximumFractionDigits: 2}});
+        }}
+        function colorClass(val) {{
+            return val >= 0 ? 'positive' : 'negative';
+        }}
 
         function updateDashboard() {{
             const startStr = document.getElementById('startDate').value;
             const endStr = document.getElementById('endDate').value;
-            
             if (!startStr || !endStr) return;
 
-            const start = new Date(startStr);
-            start.setHours(0,0,0,0);
-            const end = new Date(endStr);
-            end.setHours(23,59,59,999);
+            const start = new Date(startStr); start.setHours(0,0,0,0);
+            const end = new Date(endStr); end.setHours(23,59,59,999);
 
-            // Filter trades
             const filtered = allTrades.filter(t => {{
                 const d = new Date(t.entry_time);
                 return d >= start && d <= end;
             }});
 
-            // Calculate Stats
-            let netProfit = 0;
-            let wins = 0;
-            let peak = 1000; // Base $1000
-            let currentBalance = 1000;
-            let maxDrawdown = 0;
+            // 1. Overall Stats
+            let netProfit = 0, wins = 0, losses = 0;
+            let peak = 1000, currentBalance = 1000, maxDrawdown = 0;
             
-            const chartLabels = [];
-            const chartData = [];
-
-            // Add initial point
-            if(filtered.length > 0) {{
-                 chartLabels.push(startStr);
-                 chartData.push(1000);
-            }}
+            // Map for Monthly / Symbol
+            let monthlyData = {{}};
+            let symbolData = {{}};
 
             for (let t of filtered) {{
                 netProfit += t.pnl;
                 currentBalance += t.pnl;
-                if (t.pnl > 0) wins++;
+                if (t.pnl > 0) wins++; else losses++;
                 
                 if (currentBalance > peak) peak = currentBalance;
-                
                 const drawdown = (peak - currentBalance) / peak * 100;
                 if (drawdown > maxDrawdown) maxDrawdown = drawdown;
 
-                // Format date for chart
-                const d = new Date(t.exit_time);
-                chartLabels.push(d.toLocaleDateString('ko-KR'));
-                chartData.push(currentBalance);
+                // Monthly grouping
+                const dateObj = new Date(t.exit_time);
+                const monthKey = dateObj.getFullYear() + '-' + String(dateObj.getMonth() + 1).padStart(2, '0');
+                if(!monthlyData[monthKey]) monthlyData[monthKey] = {{pnl:0, trades:0, wins:0, loss:0, winPnl:0, lossPnl:0}};
+                
+                monthlyData[monthKey].pnl += t.pnl;
+                monthlyData[monthKey].trades++;
+                if(t.pnl > 0) {{ monthlyData[monthKey].wins++; monthlyData[monthKey].winPnl += t.pnl; }}
+                else {{ monthlyData[monthKey].loss++; monthlyData[monthKey].lossPnl += t.pnl; }}
+
+                // Symbol grouping
+                const sym = t.symbol;
+                if(!symbolData[sym]) symbolData[sym] = {{pnl:0, trades:0, wins:0, loss:0, winPnl:0, lossPnl:0}};
+                
+                symbolData[sym].pnl += t.pnl;
+                symbolData[sym].trades++;
+                if(t.pnl > 0) {{ symbolData[sym].wins++; symbolData[sym].winPnl += t.pnl; }}
+                else {{ symbolData[sym].loss++; symbolData[sym].lossPnl += t.pnl; }}
             }}
 
             const winRate = filtered.length > 0 ? (wins / filtered.length) * 100 : 0;
 
-            // DOM Updates
+            // DOM Updates Summary
             const profitEl = document.getElementById('valNetProfit');
-            profitEl.textContent = (netProfit >= 0 ? '+$' : '-$') + Math.abs(netProfit).toLocaleString(undefined, {{minimumFractionDigits: 2, maximumFractionDigits:2}});
-            profitEl.className = 'stat-value ' + (netProfit >= 0 ? 'positive' : 'negative');
+            profitEl.textContent = formatUSD(netProfit);
+            profitEl.className = 'stat-value ' + colorClass(netProfit);
 
-            document.getElementById('valWinRate').textContent = winRate.toFixed(2) + '%';
-            document.getElementById('valMDD').textContent = maxDrawdown.toFixed(2) + '%';
             document.getElementById('valTrades').textContent = filtered.length;
+            document.getElementById('valWinRate').textContent = winRate.toFixed(2) + '%';
+            document.getElementById('valWL').textContent = wins + ' / ' + losses;
+            document.getElementById('valMDD').textContent = maxDrawdown.toFixed(2) + '%';
 
-            // Update Chart
-            updateChart(chartLabels, chartData);
-        }}
-
-        function updateChart(labels, data) {{
-            const ctx = document.getElementById('pnlChart').getContext('2d');
+            // 2. Prepare Monthly Table & Charts
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const monthlyLabels = [];
+            const monthlyPnlData = [];
+            const monthlyColors = [];
             
-            if (pnlChart) {{
-                pnlChart.destroy();
+            const cumulativeLabels = [];
+            const cumulativeData = [];
+            let rCumul = 1000;
+            if(sortedMonths.length > 0) {{ cumulativeLabels.push('Start'); cumulativeData.push(1000); }}
+
+            const mBody = document.querySelector('#monthlyTable tbody');
+            mBody.innerHTML = '';
+            
+            for(let m of sortedMonths) {{
+                const d = monthlyData[m];
+                monthlyLabels.push(m);
+                monthlyPnlData.push(d.pnl);
+                monthlyColors.push(d.pnl >= 0 ? '#28a745' : '#dc3545');
+
+                rCumul += d.pnl;
+                cumulativeLabels.push(m);
+                cumulativeData.push(rCumul);
+
+                const wr = d.trades > 0 ? (d.wins / d.trades * 100).toFixed(2) : '0.00';
+                const aw = d.wins > 0 ? (d.winPnl / d.wins) : 0;
+                const al = d.loss > 0 ? (d.lossPnl / d.loss) : 0;
+                const payoff = al !== 0 ? Math.abs(aw / al).toFixed(2) : '∞';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${{m}}</td>
+                    <td class="${{colorClass(d.pnl)}}">${{formatUSD(d.pnl)}}</td>
+                    <td>${{d.trades}}</td>
+                    <td>${{d.wins}} / ${{d.loss}}</td>
+                    <td>${{wr}}%</td>
+                    <td>${{formatUSD(aw)}}</td>
+                    <td>${{formatUSD(al)}}</td>
+                    <td>${{payoff}}</td>
+                    <td class="${{colorClass(rCumul-1000)}}">${{formatUSD(rCumul-1000)}}</td>
+                `;
+                mBody.appendChild(tr);
             }}
 
-            pnlChart = new Chart(ctx, {{
-                type: 'line',
+            // 3. Prepare Symbol Table & Charts
+            const sortedSymbols = Object.keys(symbolData).sort((a,b) => symbolData[b].pnl - symbolData[a].pnl);
+            const symbolLabels = [];
+            const symbolPnlData = [];
+            const symbolColors = [];
+
+            const sBody = document.querySelector('#symbolTable tbody');
+            sBody.innerHTML = '';
+
+            for(let s of sortedSymbols) {{
+                const d = symbolData[s];
+                symbolLabels.push(s);
+                symbolPnlData.push(d.pnl);
+                symbolColors.push(d.pnl >= 0 ? '#28a745' : '#dc3545');
+
+                const wr = d.trades > 0 ? (d.wins / d.trades * 100).toFixed(2) : '0.00';
+                const aw = d.wins > 0 ? (d.winPnl / d.wins) : 0;
+                const al = d.loss > 0 ? (d.lossPnl / d.loss) : 0;
+                const payoff = al !== 0 ? Math.abs(aw / al).toFixed(2) : '∞';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${{s}}</td>
+                    <td class="${{colorClass(d.pnl)}}">${{formatUSD(d.pnl)}}</td>
+                    <td>${{d.trades}}</td>
+                    <td>${{d.wins}} / ${{d.loss}}</td>
+                    <td>${{wr}}%</td>
+                    <td>${{formatUSD(aw)}}</td>
+                    <td>${{formatUSD(al)}}</td>
+                    <td>${{payoff}}</td>
+                `;
+                sBody.appendChild(tr);
+            }}
+
+            // Render Charts
+            renderChart('monthlyChart', 'bar', monthlyLabels, '월별 수익금 ($)', monthlyPnlData, monthlyColors);
+            renderChart('cumulativeChart', 'line', cumulativeLabels, '누적 자산 ($)', cumulativeData, '#007bff');
+            renderChart('symbolChart', 'bar', symbolLabels, '종목별 수익금 ($)', symbolPnlData, symbolColors);
+        }}
+
+        function renderChart(id, type, labels, label, data, colors) {{
+            const ctx = document.getElementById(id).getContext('2d');
+            if(charts[id]) charts[id].destroy();
+
+            const config = {{
+                type: type,
                 data: {{
                     labels: labels,
                     datasets: [{{
-                        label: '포트폴리오 자산 변화 (Portfolio Balance)',
+                        label: label,
                         data: data,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        pointRadius: 0,
-                        pointHitRadius: 10,
-                        tension: 0.1
+                        backgroundColor: type === 'line' ? 'rgba(0,123,255,0.1)' : colors,
+                        borderColor: type === 'line' ? colors : 'transparent',
+                        borderWidth: type === 'line' ? 2 : 0,
+                        fill: type === 'line',
+                        tension: 0.1,
+                        pointRadius: type === 'line' ? 0 : 3
                     }}]
                 }},
                 options: {{
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {{
-                        intersect: false,
-                        mode: 'index',
-                    }},
-                    scales: {{
-                        y: {{
-                            grid: {{ color: '#334155' }},
-                            ticks: {{ color: '#94a3b8' }}
-                        }},
-                        x: {{
-                            grid: {{ display: false }},
-                            ticks: {{ 
-                                color: '#94a3b8',
-                                maxTicksLimit: 10
-                            }}
-                        }}
-                    }},
-                    plugins: {{
-                        legend: {{
-                            labels: {{ color: '#f8fafc' }}
-                        }}
-                    }}
+                    interaction: {{ mode: 'index', intersect: false }},
+                    plugins: {{ legend: {{ display: type === 'line' }} }}
                 }}
-            }});
+            }};
+            charts[id] = new Chart(ctx, config);
         }}
 
-        // Initial Load
         window.onload = () => {{
-            // Set default end date to today
-            document.getElementById('endDate').value = new Date().toISOString().split('T')[0];
-            // Find earliest trade for start date
+            const endNode = document.getElementById('endDate');
+            const startNode = document.getElementById('startDate');
+            
+            endNode.value = new Date().toISOString().split('T')[0];
             if (allTrades.length > 0) {{
-                 document.getElementById('startDate').value = allTrades[0].entry_time.split(' ')[0];
+                const d = new Date(allTrades[0].entry_time);
+                startNode.value = d.toISOString().split('T')[0];
+            }} else {{
+                startNode.value = '2020-01-01';
             }}
             updateDashboard();
         }};
@@ -314,7 +406,9 @@ html_content = f"""<!DOCTYPE html>
 </html>
 """
 
-with open('C:/Crypto_Auto_Trading-BOT/docs/index.html', 'w', encoding='utf-8') as f:
-    f.write(html_content)
+    with open('C:/Crypto_Auto_Trading-BOT/docs/index.html', 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    print("✅ Rich HTML Dashboard updated!")
 
-print("✅ Dashboard generated at C:/Crypto_Auto_Trading-BOT/docs/index.html")
+if __name__ == "__main__":
+    build()

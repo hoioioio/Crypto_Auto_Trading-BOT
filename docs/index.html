@@ -3,288 +3,379 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Auto Trading Bot - Backtest Viewer</title>
+    <title>Crypto Auto Trading Bot - Advanced Backtest Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --panel-bg: #1e293b;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --accent: #3b82f6;
-            --success: #10b981;
-            --danger: #ef4444;
+            --bg-color: #f8f9fa;
+            --panel-bg: #ffffff;
+            --text-color: #212529;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+            --accent: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --header-bg: #e9ecef;
+            --row-alt: #f1f3f5;
         }
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 20px;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            margin: 0 0 10px 0;
-            background: linear-gradient(to right, #60a5fa, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        h1, h2 { color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 30px; }
+        
         .controls {
-            background: var(--panel-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+            background: var(--panel-bg); padding: 20px; border-radius: 8px;
+            border: 1px solid var(--border-color); display: flex; gap: 20px;
+            align-items: center; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .control-group label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+        .control-group { display: flex; flex-direction: column; gap: 5px; }
+        .control-group label { font-size: 0.85rem; color: var(--text-muted); font-weight: bold; }
         input[type="date"] {
-            background: var(--bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 1rem;
-            color-scheme: dark;
+            padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 1rem;
         }
         button {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            margin-top: auto;
+            background: var(--accent); color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: auto;
         }
         button:hover { opacity: 0.9; }
         
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+        .summary { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; }
+        .summary-card { 
+            flex: 1 1 200px; background-color: var(--panel-bg); padding: 20px; 
+            border-radius: 8px; text-align: center; border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-        .stat-card {
-            background: var(--panel-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            text-align: center;
-        }
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            margin: 10px 0 5px 0;
-        }
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-        .chart-container {
-            background: var(--panel-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            height: 400px;
-        }
+        .summary-card h3 { margin-top: 0; color: #495057; font-size: 1.1rem; border: none; padding: 0; }
+        .stat-value { font-size: 24px; font-weight: bold; margin-top: 10px; }
         .positive { color: var(--success); }
         .negative { color: var(--danger); }
+        
+        .charts { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; }
+        .chart-box { 
+            flex: 1 1 500px; background: var(--panel-bg); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            height: 350px;
+        }
+        .chart-box-wide {
+            flex: 1 1 100%; background: var(--panel-bg); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            height: 400px;
+        }
+        
+        .data-section { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 40px; }
+        .data-table-wrapper { flex: 1 1 500px; background: var(--panel-bg); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); border: 1px solid var(--border-color); overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; margin-top: 15px; font-size: 0.9rem; }
+        th, td { border: 1px solid var(--border-color); padding: 10px 12px; text-align: right; }
+        th { background-color: var(--header-bg); text-align: center; font-weight: bold; }
+        td:first-child { text-align: left; font-weight: bold; }
+        tbody tr:nth-child(even) { background-color: var(--row-alt); }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Interactive Backtest Viewer</h1>
-            <p style="color: var(--text-muted)">자유롭게 기간을 설정하여 백테스트 성과를 분석해보세요.</p>
-        </div>
-
+        <h1 style="text-align: center; border: none;">📈 성과 분석 리포트 (Interactive Dashboard)</h1>
+        
         <div class="controls">
             <div class="control-group">
                 <label>시작일 (Start Date)</label>
-                <input type="date" id="startDate" value="2020-01-01">
+                <input type="date" id="startDate">
             </div>
             <div class="control-group">
                 <label>종료일 (End Date)</label>
-                <input type="date" id="endDate" value="2026-12-31">
+                <input type="date" id="endDate">
             </div>
             <button onclick="updateDashboard()">조회하기 (Apply)</button>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">총 수익금 (Net Profit)</div>
+        <h2>📊 전체 기간 요약</h2>
+        <div class="summary">
+            <div class="summary-card">
+                <h3>총 손익 (Total PnL)</h3>
                 <div class="stat-value" id="valNetProfit">$0</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">승률 (Win Rate)</div>
-                <div class="stat-value" id="valWinRate">0%</div>
+            <div class="summary-card">
+                <h3>총 거래 (Total Trades)</h3>
+                <div class="stat-value" id="valTrades" style="color: #212529;">0</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">최대 낙폭 (MDD)</div>
+            <div class="summary-card">
+                <h3>승률 (Win Rate)</h3>
+                <div class="stat-value" id="valWinRate" style="color: #212529;">0%</div>
+            </div>
+            <div class="summary-card">
+                <h3>승/패 (W/L)</h3>
+                <div class="stat-value" id="valWL" style="color: #212529;">0 / 0</div>
+            </div>
+            <div class="summary-card">
+                <h3>최대 낙폭 (MDD)</h3>
                 <div class="stat-value negative" id="valMDD">0%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">총 거래 횟수 (Total Trades)</div>
-                <div class="stat-value" id="valTrades">0</div>
             </div>
         </div>
 
-        <div class="chart-container">
-            <canvas id="pnlChart"></canvas>
+        <h2>🎨 시각화 차트</h2>
+        <div class="charts">
+            <div class="chart-box">
+                <h3 style="text-align:center; margin-top:0;">월별 손익 (Monthly PnL)</h3>
+                <canvas id="monthlyChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3 style="text-align:center; margin-top:0;">누적 손익 (Cumulative PnL)</h3>
+                <canvas id="cumulativeChart"></canvas>
+            </div>
+        </div>
+        <div class="charts">
+            <div class="chart-box-wide">
+                <h3 style="text-align:center; margin-top:0;">종목별 총 손익 (Total PnL by Symbol)</h3>
+                <canvas id="symbolChart"></canvas>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <div class="data-table-wrapper">
+                <h2 style="margin-top:0;">📋 월별 상세 데이터</h2>
+                <table id="monthlyTable">
+                    <thead>
+                        <tr>
+                            <th>월 (Month)</th>
+                            <th>총 손익 (Total PnL)</th>
+                            <th>총 거래</th>
+                            <th>승/패</th>
+                            <th>승률 (%)</th>
+                            <th>평균 수익</th>
+                            <th>평균 손실</th>
+                            <th>손익비 (Payoff)</th>
+                            <th>누적 수익</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="data-table-wrapper">
+                <h2 style="margin-top:0;">📈 종목별 상세 데이터</h2>
+                <table id="symbolTable">
+                    <thead>
+                        <tr>
+                            <th>종목 (Symbol)</th>
+                            <th>총 손익 (Total PnL)</th>
+                            <th>총 거래</th>
+                            <th>승/패</th>
+                            <th>승률 (%)</th>
+                            <th>평균 수익</th>
+                            <th>평균 손실</th>
+                            <th>손익비 (Payoff)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
         const allTrades = [{"symbol": "ETH/USDT", "side": "buy", "entry_time": "2020-01-30 08:00:00+00:00", "exit_time": "2020-02-07 00:00:00+00:00", "pnl": 64.3432748838095, "roi": 2488.7499999999995}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2020-01-30 08:00:00+00:00", "exit_time": "2020-02-08 00:00:00+00:00", "pnl": 140.33816177225202, "roi": 2326.361007145289}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2020-02-24 12:00:00+00:00", "exit_time": "2020-02-24 12:00:00+00:00", "pnl": -14.65096656912294, "roi": -147.27331755331068}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2020-04-08 04:00:00+00:00", "exit_time": "2020-04-10 00:00:00+00:00", "pnl": -20.362284033005032, "roi": -546.9556099047857}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2020-04-16 08:00:00+00:00", "exit_time": "2020-05-10 00:00:00+00:00", "pnl": -20.39654251307203, "roi": -250.8537466222893}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2020-05-22 16:00:00+00:00", "exit_time": "2020-05-24 12:00:00+00:00", "pnl": -20.670554568076785, "roi": -151.86551922273307}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2020-06-01 04:00:00+00:00", "exit_time": "2020-06-02 12:00:00+00:00", "pnl": -20.49380081733924, "roi": -406.783794547511}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2020-06-04 16:00:00+00:00", "exit_time": "2020-06-07 12:00:00+00:00", "pnl": -20.484433907684565, "roi": -517.8759382526257}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2020-06-07 20:00:00+00:00", "exit_time": "2020-06-11 16:00:00+00:00", "pnl": -20.64553065962789, "roi": -314.94378419076685}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2020-05-28 00:00:00+00:00", "exit_time": "2020-06-11 20:00:00+00:00", "pnl": 81.68733540818765, "roi": 369.3526737389043}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2020-06-26 12:00:00+00:00", "exit_time": "2020-06-27 08:00:00+00:00", "pnl": -20.526772427688257, "roi": -191.20554045679893}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2020-07-21 04:00:00+00:00", "exit_time": "2020-07-25 16:00:00+00:00", "pnl": 192.90415794979043, "roi": 2488.749999999998}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2020-07-19 08:00:00+00:00", "exit_time": "2020-08-02 00:00:00+00:00", "pnl": 28.88276183490393, "roi": 1244.3749999999995}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2020-07-19 08:00:00+00:00", "exit_time": "2020-08-02 04:00:00+00:00", "pnl": 18.67510154308933, "roi": 344.82500000000044}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2020-08-08 00:00:00+00:00", "exit_time": "2020-08-09 16:00:00+00:00", "pnl": -20.44145078499173, "roi": -226.39733349191297}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2020-08-11 04:00:00+00:00", "exit_time": "2020-08-11 08:00:00+00:00", "pnl": -20.79431318029229, "roi": -129.26751475548053}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2020-08-14 20:00:00+00:00", "exit_time": "2020-08-16 08:00:00+00:00", "pnl": -21.96513461701108, "roi": -55.60414573222956}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2020-07-21 04:00:00+00:00", "exit_time": "2020-08-21 20:00:00+00:00", "pnl": 1150.4763064417696, "roi": 6361.2223768556}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2020-08-14 12:00:00+00:00", "exit_time": "2020-08-21 20:00:00+00:00", "pnl": -8.355782191937875, "roi": -133.9649022370964}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2020-10-15 00:00:00+00:00", "exit_time": "2020-10-15 08:00:00+00:00", "pnl": -22.30960967903193, "roi": -120.2228648676289}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2020-10-12 16:00:00+00:00", "exit_time": "2020-10-16 04:00:00+00:00", "pnl": -20.363242972130355, "roi": -545.5760588311524}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2020-10-25 16:00:00+00:00", "exit_time": "2020-10-27 08:00:00+00:00", "pnl": -21.56703747769184, "roi": -68.3783289324788}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2020-10-22 04:00:00+00:00", "exit_time": "2020-10-28 04:00:00+00:00", "pnl": -5.565319760179812, "roi": -54.65378293508609}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2020-11-21 08:00:00+00:00", "exit_time": "2020-11-26 00:00:00+00:00", "pnl": -20.305528943511057, "roi": -321.76967218222114}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2020-12-29 12:00:00+00:00", "exit_time": "2021-01-03 04:00:00+00:00", "pnl": 52.38795899851908, "roi": 3110.937499999998}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2020-12-29 12:00:00+00:00", "exit_time": "2021-01-04 08:00:00+00:00", "pnl": 33.87316142150365, "roi": 862.0625000000024}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2021-01-23 20:00:00+00:00", "exit_time": "2021-01-27 12:00:00+00:00", "pnl": -20.56629935670643, "roi": -356.86833791110666}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2021-02-18 16:00:00+00:00", "exit_time": "2021-02-19 12:00:00+00:00", "pnl": 16.57826498156807, "roi": 1244.374999999999}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2021-02-18 16:00:00+00:00", "exit_time": "2021-02-20 20:00:00+00:00", "pnl": 10.719223587713932, "roi": 344.82500000000067}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2021-04-17 20:00:00+00:00", "exit_time": "2021-04-18 00:00:00+00:00", "pnl": -20.08886060430668, "roi": -1016.0195127874866}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2021-05-07 08:00:00+00:00", "exit_time": "2021-05-09 00:00:00+00:00", "pnl": -20.110624200638817, "roi": -833.6065273027433}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2021-06-13 20:00:00+00:00", "exit_time": "2021-06-18 12:00:00+00:00", "pnl": -14.952828862788758, "roi": -331.95152390961687}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2021-08-13 00:00:00+00:00", "exit_time": "2021-08-16 16:00:00+00:00", "pnl": 50.7846148251797, "roi": 1244.3750000000002}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2021-08-13 04:00:00+00:00", "exit_time": "2021-08-24 00:00:00+00:00", "pnl": 34.51754198558376, "roi": 1244.3749999999995}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2021-08-13 04:00:00+00:00", "exit_time": "2021-08-26 16:00:00+00:00", "pnl": 22.318454352922217, "roi": 344.82500000000107}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2021-08-19 20:00:00+00:00", "exit_time": "2021-09-01 00:00:00+00:00", "pnl": 4.780570072561391, "roi": 85.58380308400193}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2021-08-13 00:00:00+00:00", "exit_time": "2021-09-07 12:00:00+00:00", "pnl": 610.5524994417494, "roi": 6411.5840913198}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2021-09-08 16:00:00+00:00", "exit_time": "2021-09-09 00:00:00+00:00", "pnl": 17.54339044386204, "roi": 1244.3750000000002}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2021-09-08 16:00:00+00:00", "exit_time": "2021-09-10 08:00:00+00:00", "pnl": 11.343257262650758, "roi": 344.82500000000016}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2021-10-11 04:00:00+00:00", "exit_time": "2021-10-29 00:00:00+00:00", "pnl": 33.88928795264629, "roi": 2488.7499999999995}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2021-10-29 04:00:00+00:00", "exit_time": "2021-10-30 12:00:00+00:00", "pnl": -20.486977589345017, "roi": -206.11570852063505}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2021-11-01 08:00:00+00:00", "exit_time": "2021-11-04 12:00:00+00:00", "pnl": -8.360298655842985, "roi": -244.82501915024983}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2021-11-01 08:00:00+00:00", "exit_time": "2021-11-07 04:00:00+00:00", "pnl": 46.67656451899701, "roi": 1244.3750000000002}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2021-10-11 04:00:00+00:00", "exit_time": "2021-11-16 00:00:00+00:00", "pnl": 71.15585216135372, "roi": 2239.508256338574}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2021-11-01 08:00:00+00:00", "exit_time": "2021-11-17 00:00:00+00:00", "pnl": 35.334897160808424, "roi": 403.7192335406554}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2021-11-23 16:00:00+00:00", "exit_time": "2021-11-24 20:00:00+00:00", "pnl": 18.306099425557736, "roi": 1244.375}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2021-11-23 16:00:00+00:00", "exit_time": "2021-11-28 00:00:00+00:00", "pnl": 11.836411891090098, "roi": 344.82500000000067}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2021-12-03 08:00:00+00:00", "exit_time": "2021-12-03 12:00:00+00:00", "pnl": -20.99275332925612, "roi": -104.67556036353132}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2022-02-15 04:00:00+00:00", "exit_time": "2022-02-17 20:00:00+00:00", "pnl": -20.785629283492103, "roi": -130.6238326992048}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2022-03-08 04:00:00+00:00", "exit_time": "2022-03-10 20:00:00+00:00", "pnl": 16.948986000411065, "roi": 1244.374999999999}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2022-03-21 08:00:00+00:00", "exit_time": "2022-03-22 20:00:00+00:00", "pnl": -20.41890476884935, "roi": -238.0354131247873}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2022-03-25 12:00:00+00:00", "exit_time": "2022-03-25 16:00:00+00:00", "pnl": -20.53314539613354, "roi": -189.02070736769252}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2022-03-08 04:00:00+00:00", "exit_time": "2022-04-04 08:00:00+00:00", "pnl": 70.61247535417664, "roi": 2221.837064050973}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2022-07-31 04:00:00+00:00", "exit_time": "2022-07-31 20:00:00+00:00", "pnl": -20.703815613071185, "roi": -145.02215441879457}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2022-08-04 04:00:00+00:00", "exit_time": "2022-08-04 16:00:00+00:00", "pnl": -20.64292571586665, "roi": -158.08020127118704}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2022-08-10 16:00:00+00:00", "exit_time": "2022-08-14 16:00:00+00:00", "pnl": -20.325713804633335, "roi": -302.7238308956774}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2022-08-10 08:00:00+00:00", "exit_time": "2022-08-15 08:00:00+00:00", "pnl": -20.769965955693944, "roi": -133.14661879834688}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2022-08-18 12:00:00+00:00", "exit_time": "2022-08-18 12:00:00+00:00", "pnl": -21.70941714672992, "roi": -63.13016357903041}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2022-09-12 12:00:00+00:00", "exit_time": "2022-09-12 12:00:00+00:00", "pnl": -21.38147004667496, "roi": -76.83050777042568}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2022-10-23 20:00:00+00:00", "exit_time": "2022-10-24 00:00:00+00:00", "pnl": -7.27520451486129, "roi": -81.91577571656636}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2022-10-29 08:00:00+00:00", "exit_time": "2022-10-29 08:00:00+00:00", "pnl": -21.556937192775077, "roi": -68.78685786568565}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2022-11-04 08:00:00+00:00", "exit_time": "2022-11-05 20:00:00+00:00", "pnl": 72.27706339231067, "roi": 692.8282360210079}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2022-11-04 04:00:00+00:00", "exit_time": "2022-11-07 04:00:00+00:00", "pnl": -20.52660421820245, "roi": -191.26391036361676}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2022-12-13 16:00:00+00:00", "exit_time": "2022-12-15 20:00:00+00:00", "pnl": -13.597064151702948, "roi": -234.87413980441812}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2023-01-18 04:00:00+00:00", "exit_time": "2023-01-18 16:00:00+00:00", "pnl": -20.38073624068526, "roi": -260.79915450051755}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2023-01-19 12:00:00+00:00", "exit_time": "2023-01-19 16:00:00+00:00", "pnl": -21.45260644819245, "roi": -73.3369064340735}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2023-01-27 08:00:00+00:00", "exit_time": "2023-01-27 12:00:00+00:00", "pnl": -21.002376156509765, "roi": -103.72812526974602}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2023-02-02 00:00:00+00:00", "exit_time": "2023-02-05 12:00:00+00:00", "pnl": -12.376807997422404, "roi": -284.10400175901424}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2023-02-28 12:00:00+00:00", "exit_time": "2023-02-28 20:00:00+00:00", "pnl": -22.17851776213252, "roi": -101.3403598813906}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2023-03-01 08:00:00+00:00", "exit_time": "2023-03-03 00:00:00+00:00", "pnl": -20.992970307559776, "roi": -209.30799395882053}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2023-04-21 12:00:00+00:00", "exit_time": "2023-04-21 16:00:00+00:00", "pnl": -16.869186076774874, "roi": -136.48898860573487}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2023-06-27 12:00:00+00:00", "exit_time": "2023-06-28 04:00:00+00:00", "pnl": -21.34272377884272, "roi": -197.21989914583557}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2023-07-11 04:00:00+00:00", "exit_time": "2023-07-11 08:00:00+00:00", "pnl": -20.89474673462886, "roi": -115.47290492957757}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2023-07-11 16:00:00+00:00", "exit_time": "2023-07-12 16:00:00+00:00", "pnl": -21.71623203317292, "roi": -157.25168760523692}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2023-07-10 16:00:00+00:00", "exit_time": "2023-07-17 00:00:00+00:00", "pnl": -21.006450248709875, "roi": -103.33240744134886}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2023-07-19 16:00:00+00:00", "exit_time": "2023-08-04 16:00:00+00:00", "pnl": 13.392344353986, "roi": 140.91240875912345}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2023-09-12 04:00:00+00:00", "exit_time": "2023-09-12 12:00:00+00:00", "pnl": -10.942491728627758, "roi": -120.81009426551394}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2023-09-22 12:00:00+00:00", "exit_time": "2023-09-22 12:00:00+00:00", "pnl": -22.396164006604323, "roi": -46.53914684354935}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2023-10-06 20:00:00+00:00", "exit_time": "2023-10-07 16:00:00+00:00", "pnl": -22.16920083697247, "roi": -101.73087519446716}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2023-10-26 04:00:00+00:00", "exit_time": "2023-10-26 12:00:00+00:00", "pnl": -20.936079056723333, "roi": -110.64656229276288}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2023-11-10 00:00:00+00:00", "exit_time": "2023-11-13 20:00:00+00:00", "pnl": -20.533786294253485, "roi": -188.80382340678932}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2023-11-10 04:00:00+00:00", "exit_time": "2023-11-14 16:00:00+00:00", "pnl": -20.469531039784737, "roi": -213.4328056112228}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2023-11-18 00:00:00+00:00", "exit_time": "2023-11-18 00:00:00+00:00", "pnl": -20.54855846676618, "roi": -183.94277134257527}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2023-10-31 12:00:00+00:00", "exit_time": "2023-11-21 20:00:00+00:00", "pnl": 45.95207559012162, "roi": 433.92649351816175}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2023-11-27 00:00:00+00:00", "exit_time": "2023-12-06 04:00:00+00:00", "pnl": 52.512692880361776, "roi": 1244.3749999999998}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2023-12-06 04:00:00+00:00", "exit_time": "2023-12-09 12:00:00+00:00", "pnl": 53.93164217248971, "roi": 862.9533636532964}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2023-11-27 00:00:00+00:00", "exit_time": "2023-12-18 08:00:00+00:00", "pnl": 60.51028620740555, "roi": 614.5247933884299}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2023-12-22 00:00:00+00:00", "exit_time": "2023-12-23 00:00:00+00:00", "pnl": -15.724173095809984, "roi": -142.6953412556525}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2023-12-27 12:00:00+00:00", "exit_time": "2023-12-29 08:00:00+00:00", "pnl": -20.505371900826447, "roi": -198.9376202694036}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2024-01-17 12:00:00+00:00", "exit_time": "2024-01-17 16:00:00+00:00", "pnl": -21.196168080185046, "roi": -87.86573127077455}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2024-02-18 20:00:00+00:00", "exit_time": "2024-02-20 12:00:00+00:00", "pnl": -21.20964869984502, "roi": -86.9498270384748}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2024-02-26 16:00:00+00:00", "exit_time": "2024-02-28 16:00:00+00:00", "pnl": 51.48052500745786, "roi": 1244.375}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2024-02-26 16:00:00+00:00", "exit_time": "2024-02-29 00:00:00+00:00", "pnl": 90.101279232771, "roi": 2059.008467587883}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2024-02-26 20:00:00+00:00", "exit_time": "2024-03-01 00:00:00+00:00", "pnl": 24.446310204510016, "roi": 1244.3750000000005}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2024-02-26 20:00:00+00:00", "exit_time": "2024-03-05 16:00:00+00:00", "pnl": 15.806567530926817, "roi": 344.82500000000016}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2024-02-21 00:00:00+00:00", "exit_time": "2024-03-07 12:00:00+00:00", "pnl": 99.98445778426866, "roi": 1244.3749999999995}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2024-02-22 08:00:00+00:00", "exit_time": "2024-03-09 04:00:00+00:00", "pnl": 9.619345752374542, "roi": 1244.3749999999995}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2024-02-22 08:00:00+00:00", "exit_time": "2024-03-15 08:00:00+00:00", "pnl": 6.219705017495493, "roi": 344.825}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2024-02-26 16:00:00+00:00", "exit_time": "2024-03-17 04:00:00+00:00", "pnl": 301.6670776573553, "roi": 3125.0677780341493}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2024-03-21 00:00:00+00:00", "exit_time": "2024-03-21 00:00:00+00:00", "pnl": -3.1665696249199904, "roi": -66.72184995401358}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2024-02-21 00:00:00+00:00", "exit_time": "2024-04-02 00:00:00+00:00", "pnl": 544.5866126281167, "roi": 2904.7513173838315}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2024-04-12 04:00:00+00:00", "exit_time": "2024-04-12 12:00:00+00:00", "pnl": -21.07939958592132, "roi": -241.86946482192505}, {"symbol": "LUNA2/USDT", "side": "buy", "entry_time": "2024-05-08 08:00:00+00:00", "exit_time": "2024-05-10 12:00:00+00:00", "pnl": -20.23462730868209, "roi": -413.5807121799842}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2024-05-20 20:00:00+00:00", "exit_time": "2024-05-30 04:00:00+00:00", "pnl": -1.018097788981649, "roi": -8.221622813713857}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2024-05-24 16:00:00+00:00", "exit_time": "2024-05-30 04:00:00+00:00", "pnl": -20.510717455158996, "roi": -196.94670547287595}, {"symbol": "LUNA2/USDT", "side": "buy", "entry_time": "2024-05-30 16:00:00+00:00", "exit_time": "2024-06-07 16:00:00+00:00", "pnl": -20.073391414778484, "roi": -1203.5646276118443}, {"symbol": "LUNA2/USDT", "side": "buy", "entry_time": "2024-07-19 16:00:00+00:00", "exit_time": "2024-07-21 16:00:00+00:00", "pnl": -20.427400982061148, "roi": -233.50886051743564}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2024-08-01 00:00:00+00:00", "exit_time": "2024-08-01 16:00:00+00:00", "pnl": -20.247448354614345, "roi": -393.23320564516064}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2024-08-02 12:00:00+00:00", "exit_time": "2024-08-05 00:00:00+00:00", "pnl": -20.15412456807731, "roi": -613.9886552080259}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2024-09-12 20:00:00+00:00", "exit_time": "2024-09-16 00:00:00+00:00", "pnl": -20.938263491901854, "roi": -110.40319315630164}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2024-09-19 00:00:00+00:00", "exit_time": "2024-09-22 12:00:00+00:00", "pnl": -16.357807742496785, "roi": -153.521391247551}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2024-10-01 04:00:00+00:00", "exit_time": "2024-10-01 12:00:00+00:00", "pnl": -20.809820358109928, "roi": -126.91695291689472}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2024-10-08 12:00:00+00:00", "exit_time": "2024-10-09 16:00:00+00:00", "pnl": -6.281559885045888, "roi": -49.79614924493284}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2024-10-24 16:00:00+00:00", "exit_time": "2024-10-25 04:00:00+00:00", "pnl": -22.71484777129825, "roi": -41.680948217661}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2024-11-11 12:00:00+00:00", "exit_time": "2024-11-13 04:00:00+00:00", "pnl": -20.850096238810945, "roi": -242.41585183113332}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2024-11-21 16:00:00+00:00", "exit_time": "2024-11-24 04:00:00+00:00", "pnl": 31.32219992084576, "roi": 1244.3750000000002}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2024-11-21 16:00:00+00:00", "exit_time": "2024-11-25 20:00:00+00:00", "pnl": 20.252400633233407, "roi": 344.82500000000005}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2024-12-02 16:00:00+00:00", "exit_time": "2024-12-02 16:00:00+00:00", "pnl": -20.80759313908326, "roi": -318.12267227459387}, {"symbol": "LUNA2/USDT", "side": "buy", "entry_time": "2024-12-02 16:00:00+00:00", "exit_time": "2024-12-04 08:00:00+00:00", "pnl": 25.967701018110976, "roi": 1244.3749999999995}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2024-12-05 00:00:00+00:00", "exit_time": "2024-12-05 00:00:00+00:00", "pnl": -20.380579318447293, "roi": -260.9019263931854}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2024-12-04 20:00:00+00:00", "exit_time": "2024-12-05 20:00:00+00:00", "pnl": -20.703417335875383, "roi": -362.7508103386594}, {"symbol": "LUNA2/USDT", "side": "buy", "entry_time": "2024-12-02 16:00:00+00:00", "exit_time": "2024-12-09 20:00:00+00:00", "pnl": 16.790272901387155, "roi": 344.82500000000044}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2024-12-03 20:00:00+00:00", "exit_time": "2024-12-09 20:00:00+00:00", "pnl": -20.24873239143841, "roi": -391.3064823245846}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2025-01-20 08:00:00+00:00", "exit_time": "2025-01-20 16:00:00+00:00", "pnl": -20.353744157115887, "roi": -699.4526152151831}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2025-04-28 08:00:00+00:00", "exit_time": "2025-04-28 12:00:00+00:00", "pnl": -20.45428664400144, "roi": -220.27649199336145}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2025-04-28 08:00:00+00:00", "exit_time": "2025-04-28 16:00:00+00:00", "pnl": -20.51945589152885, "roi": -193.77870961334727}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2025-05-07 12:00:00+00:00", "exit_time": "2025-05-07 12:00:00+00:00", "pnl": -21.6704770121816, "roi": -64.47715992273207}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2025-05-13 12:00:00+00:00", "exit_time": "2025-05-15 04:00:00+00:00", "pnl": -21.063357071888326, "roi": -98.11905852929333}, {"symbol": "LUNA2/USDT", "side": "buy", "entry_time": "2025-05-19 00:00:00+00:00", "exit_time": "2025-05-19 00:00:00+00:00", "pnl": -12.843353445710123, "roi": -239.4941977800201}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2025-05-19 00:00:00+00:00", "exit_time": "2025-05-19 00:00:00+00:00", "pnl": -14.744942644939073, "roi": -255.7317390738243}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2025-05-19 00:00:00+00:00", "exit_time": "2025-05-19 04:00:00+00:00", "pnl": -20.3786925795053, "roi": -262.144090909091}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2025-05-21 16:00:00+00:00", "exit_time": "2025-05-21 16:00:00+00:00", "pnl": -20.776311276385304, "roi": -132.11251002207803}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2025-04-28 08:00:00+00:00", "exit_time": "2025-05-22 12:00:00+00:00", "pnl": 10.89692730490947, "roi": 1244.3749999999998}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2025-05-29 00:00:00+00:00", "exit_time": "2025-05-29 12:00:00+00:00", "pnl": -20.53266043653823, "roi": -189.185161235646}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2025-05-06 20:00:00+00:00", "exit_time": "2025-05-30 04:00:00+00:00", "pnl": 203.972319555373, "roi": 1315.2804857297583}, {"symbol": "ZEC/USDT", "side": "buy", "entry_time": "2025-04-28 08:00:00+00:00", "exit_time": "2025-06-06 00:00:00+00:00", "pnl": 26.40384436232648, "roi": 1292.2234042553196}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2025-07-14 04:00:00+00:00", "exit_time": "2025-07-14 20:00:00+00:00", "pnl": -20.485970993579, "roi": -206.5238820293384}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2025-07-14 04:00:00+00:00", "exit_time": "2025-07-15 00:00:00+00:00", "pnl": -20.46529231031834, "roi": -215.29164122822792}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2025-07-15 12:00:00+00:00", "exit_time": "2025-07-21 08:00:00+00:00", "pnl": 58.40862455915348, "roi": 1244.3749999999998}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2025-07-15 12:00:00+00:00", "exit_time": "2025-07-24 04:00:00+00:00", "pnl": 37.76602116062836, "roi": 344.82500000000005}, {"symbol": "LUNA2/USDT", "side": "buy", "entry_time": "2025-08-22 20:00:00+00:00", "exit_time": "2025-08-24 04:00:00+00:00", "pnl": -16.494940937644817, "roi": -159.0536374845869}, {"symbol": "DOGE/USDT", "side": "buy", "entry_time": "2025-08-22 20:00:00+00:00", "exit_time": "2025-08-24 08:00:00+00:00", "pnl": -20.44694597310619, "roi": -223.7348305546241}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2025-08-22 20:00:00+00:00", "exit_time": "2025-08-25 08:00:00+00:00", "pnl": -20.484124647321217, "roi": -207.27689620798247}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2025-08-22 16:00:00+00:00", "exit_time": "2025-08-29 08:00:00+00:00", "pnl": -13.295571364792194, "roi": -593.8087053769781}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2025-08-22 16:00:00+00:00", "exit_time": "2025-09-12 20:00:00+00:00", "pnl": 17.511165268646533, "roi": 1244.3750000000002}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2025-08-22 16:00:00+00:00", "exit_time": "2025-09-13 04:00:00+00:00", "pnl": 41.30469463191795, "roi": 1257.9369120231577}, {"symbol": "AVAX/USDT", "side": "buy", "entry_time": "2025-09-23 00:00:00+00:00", "exit_time": "2025-09-25 04:00:00+00:00", "pnl": -20.25267532761694, "roi": -385.5077580249832}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2025-12-07 20:00:00+00:00", "exit_time": "2025-12-08 12:00:00+00:00", "pnl": -9.33276850301819, "roi": -213.0867886009816}, {"symbol": "BNB/USDT", "side": "buy", "entry_time": "2025-12-07 20:00:00+00:00", "exit_time": "2025-12-11 00:00:00+00:00", "pnl": -20.516548220439176, "roi": -194.82117139555797}, {"symbol": "ETH/USDT", "side": "buy", "entry_time": "2025-12-08 04:00:00+00:00", "exit_time": "2025-12-15 12:00:00+00:00", "pnl": -20.68673565013929, "roi": -296.9093894650524}, {"symbol": "LUNA2/USDT", "side": "buy", "entry_time": "2025-12-21 20:00:00+00:00", "exit_time": "2025-12-21 20:00:00+00:00", "pnl": -3.502794620260428, "roi": -124.89640130861514}, {"symbol": "BTC/USDT", "side": "buy", "entry_time": "2026-01-07 00:00:00+00:00", "exit_time": "2026-01-07 08:00:00+00:00", "pnl": -20.957328141835, "roi": -270.81461858019856}, {"symbol": "SOL/USDT", "side": "buy", "entry_time": "2026-01-16 20:00:00+00:00", "exit_time": "2026-01-18 20:00:00+00:00", "pnl": -20.691382181272303, "roi": -147.50433311363992}];
-        let pnlChart = null;
+        
+        let charts = {};
+
+        function formatUSD(val) {
+            return (val >= 0 ? '$' : '-$') + Math.abs(val).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+        function colorClass(val) {
+            return val >= 0 ? 'positive' : 'negative';
+        }
 
         function updateDashboard() {
             const startStr = document.getElementById('startDate').value;
             const endStr = document.getElementById('endDate').value;
-            
             if (!startStr || !endStr) return;
 
-            const start = new Date(startStr);
-            start.setHours(0,0,0,0);
-            const end = new Date(endStr);
-            end.setHours(23,59,59,999);
+            const start = new Date(startStr); start.setHours(0,0,0,0);
+            const end = new Date(endStr); end.setHours(23,59,59,999);
 
-            // Filter trades
             const filtered = allTrades.filter(t => {
                 const d = new Date(t.entry_time);
                 return d >= start && d <= end;
             });
 
-            // Calculate Stats
-            let netProfit = 0;
-            let wins = 0;
-            let peak = 1000; // Base $1000
-            let currentBalance = 1000;
-            let maxDrawdown = 0;
+            // 1. Overall Stats
+            let netProfit = 0, wins = 0, losses = 0;
+            let peak = 1000, currentBalance = 1000, maxDrawdown = 0;
             
-            const chartLabels = [];
-            const chartData = [];
-
-            // Add initial point
-            if(filtered.length > 0) {
-                 chartLabels.push(startStr);
-                 chartData.push(1000);
-            }
+            // Map for Monthly / Symbol
+            let monthlyData = {};
+            let symbolData = {};
 
             for (let t of filtered) {
                 netProfit += t.pnl;
                 currentBalance += t.pnl;
-                if (t.pnl > 0) wins++;
+                if (t.pnl > 0) wins++; else losses++;
                 
                 if (currentBalance > peak) peak = currentBalance;
-                
                 const drawdown = (peak - currentBalance) / peak * 100;
                 if (drawdown > maxDrawdown) maxDrawdown = drawdown;
 
-                // Format date for chart
-                const d = new Date(t.exit_time);
-                chartLabels.push(d.toLocaleDateString('ko-KR'));
-                chartData.push(currentBalance);
+                // Monthly grouping
+                const dateObj = new Date(t.exit_time);
+                const monthKey = dateObj.getFullYear() + '-' + String(dateObj.getMonth() + 1).padStart(2, '0');
+                if(!monthlyData[monthKey]) monthlyData[monthKey] = {pnl:0, trades:0, wins:0, loss:0, winPnl:0, lossPnl:0};
+                
+                monthlyData[monthKey].pnl += t.pnl;
+                monthlyData[monthKey].trades++;
+                if(t.pnl > 0) { monthlyData[monthKey].wins++; monthlyData[monthKey].winPnl += t.pnl; }
+                else { monthlyData[monthKey].loss++; monthlyData[monthKey].lossPnl += t.pnl; }
+
+                // Symbol grouping
+                const sym = t.symbol;
+                if(!symbolData[sym]) symbolData[sym] = {pnl:0, trades:0, wins:0, loss:0, winPnl:0, lossPnl:0};
+                
+                symbolData[sym].pnl += t.pnl;
+                symbolData[sym].trades++;
+                if(t.pnl > 0) { symbolData[sym].wins++; symbolData[sym].winPnl += t.pnl; }
+                else { symbolData[sym].loss++; symbolData[sym].lossPnl += t.pnl; }
             }
 
             const winRate = filtered.length > 0 ? (wins / filtered.length) * 100 : 0;
 
-            // DOM Updates
+            // DOM Updates Summary
             const profitEl = document.getElementById('valNetProfit');
-            profitEl.textContent = (netProfit >= 0 ? '+$' : '-$') + Math.abs(netProfit).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits:2});
-            profitEl.className = 'stat-value ' + (netProfit >= 0 ? 'positive' : 'negative');
+            profitEl.textContent = formatUSD(netProfit);
+            profitEl.className = 'stat-value ' + colorClass(netProfit);
 
-            document.getElementById('valWinRate').textContent = winRate.toFixed(2) + '%';
-            document.getElementById('valMDD').textContent = maxDrawdown.toFixed(2) + '%';
             document.getElementById('valTrades').textContent = filtered.length;
+            document.getElementById('valWinRate').textContent = winRate.toFixed(2) + '%';
+            document.getElementById('valWL').textContent = wins + ' / ' + losses;
+            document.getElementById('valMDD').textContent = maxDrawdown.toFixed(2) + '%';
 
-            // Update Chart
-            updateChart(chartLabels, chartData);
-        }
-
-        function updateChart(labels, data) {
-            const ctx = document.getElementById('pnlChart').getContext('2d');
+            // 2. Prepare Monthly Table & Charts
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const monthlyLabels = [];
+            const monthlyPnlData = [];
+            const monthlyColors = [];
             
-            if (pnlChart) {
-                pnlChart.destroy();
+            const cumulativeLabels = [];
+            const cumulativeData = [];
+            let rCumul = 1000;
+            if(sortedMonths.length > 0) { cumulativeLabels.push('Start'); cumulativeData.push(1000); }
+
+            const mBody = document.querySelector('#monthlyTable tbody');
+            mBody.innerHTML = '';
+            
+            for(let m of sortedMonths) {
+                const d = monthlyData[m];
+                monthlyLabels.push(m);
+                monthlyPnlData.push(d.pnl);
+                monthlyColors.push(d.pnl >= 0 ? '#28a745' : '#dc3545');
+
+                rCumul += d.pnl;
+                cumulativeLabels.push(m);
+                cumulativeData.push(rCumul);
+
+                const wr = d.trades > 0 ? (d.wins / d.trades * 100).toFixed(2) : '0.00';
+                const aw = d.wins > 0 ? (d.winPnl / d.wins) : 0;
+                const al = d.loss > 0 ? (d.lossPnl / d.loss) : 0;
+                const payoff = al !== 0 ? Math.abs(aw / al).toFixed(2) : '∞';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${m}</td>
+                    <td class="${colorClass(d.pnl)}">${formatUSD(d.pnl)}</td>
+                    <td>${d.trades}</td>
+                    <td>${d.wins} / ${d.loss}</td>
+                    <td>${wr}%</td>
+                    <td>${formatUSD(aw)}</td>
+                    <td>${formatUSD(al)}</td>
+                    <td>${payoff}</td>
+                    <td class="${colorClass(rCumul-1000)}">${formatUSD(rCumul-1000)}</td>
+                `;
+                mBody.appendChild(tr);
             }
 
-            pnlChart = new Chart(ctx, {
-                type: 'line',
+            // 3. Prepare Symbol Table & Charts
+            const sortedSymbols = Object.keys(symbolData).sort((a,b) => symbolData[b].pnl - symbolData[a].pnl);
+            const symbolLabels = [];
+            const symbolPnlData = [];
+            const symbolColors = [];
+
+            const sBody = document.querySelector('#symbolTable tbody');
+            sBody.innerHTML = '';
+
+            for(let s of sortedSymbols) {
+                const d = symbolData[s];
+                symbolLabels.push(s);
+                symbolPnlData.push(d.pnl);
+                symbolColors.push(d.pnl >= 0 ? '#28a745' : '#dc3545');
+
+                const wr = d.trades > 0 ? (d.wins / d.trades * 100).toFixed(2) : '0.00';
+                const aw = d.wins > 0 ? (d.winPnl / d.wins) : 0;
+                const al = d.loss > 0 ? (d.lossPnl / d.loss) : 0;
+                const payoff = al !== 0 ? Math.abs(aw / al).toFixed(2) : '∞';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${s}</td>
+                    <td class="${colorClass(d.pnl)}">${formatUSD(d.pnl)}</td>
+                    <td>${d.trades}</td>
+                    <td>${d.wins} / ${d.loss}</td>
+                    <td>${wr}%</td>
+                    <td>${formatUSD(aw)}</td>
+                    <td>${formatUSD(al)}</td>
+                    <td>${payoff}</td>
+                `;
+                sBody.appendChild(tr);
+            }
+
+            // Render Charts
+            renderChart('monthlyChart', 'bar', monthlyLabels, '월별 수익금 ($)', monthlyPnlData, monthlyColors);
+            renderChart('cumulativeChart', 'line', cumulativeLabels, '누적 자산 ($)', cumulativeData, '#007bff');
+            renderChart('symbolChart', 'bar', symbolLabels, '종목별 수익금 ($)', symbolPnlData, symbolColors);
+        }
+
+        function renderChart(id, type, labels, label, data, colors) {
+            const ctx = document.getElementById(id).getContext('2d');
+            if(charts[id]) charts[id].destroy();
+
+            const config = {
+                type: type,
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: '포트폴리오 자산 변화 (Portfolio Balance)',
+                        label: label,
                         data: data,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        pointRadius: 0,
-                        pointHitRadius: 10,
-                        tension: 0.1
+                        backgroundColor: type === 'line' ? 'rgba(0,123,255,0.1)' : colors,
+                        borderColor: type === 'line' ? colors : 'transparent',
+                        borderWidth: type === 'line' ? 2 : 0,
+                        fill: type === 'line',
+                        tension: 0.1,
+                        pointRadius: type === 'line' ? 0 : 3
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index',
-                    },
-                    scales: {
-                        y: {
-                            grid: { color: '#334155' },
-                            ticks: { color: '#94a3b8' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { 
-                                color: '#94a3b8',
-                                maxTicksLimit: 10
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: { color: '#f8fafc' }
-                        }
-                    }
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { display: type === 'line' } }
                 }
-            });
+            };
+            charts[id] = new Chart(ctx, config);
         }
 
-        // Initial Load
         window.onload = () => {
-            // Set default end date to today
-            document.getElementById('endDate').value = new Date().toISOString().split('T')[0];
-            // Find earliest trade for start date
+            const endNode = document.getElementById('endDate');
+            const startNode = document.getElementById('startDate');
+            
+            endNode.value = new Date().toISOString().split('T')[0];
             if (allTrades.length > 0) {
-                 document.getElementById('startDate').value = allTrades[0].entry_time.split(' ')[0];
+                const d = new Date(allTrades[0].entry_time);
+                startNode.value = d.toISOString().split('T')[0];
+            } else {
+                startNode.value = '2020-01-01';
             }
             updateDashboard();
         };
