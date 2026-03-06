@@ -235,7 +235,7 @@ def build():
             let symbolData = {{}};
 
             for (let t of filtered) {{
-                let mult = Math.floor((currentBalance - 1000) / 250) + 1; mult = mult < 1 ? 1 : mult; let cpnl = t.pnl * mult; netProfit += cpnl;
+                let mult = currentBalance / 250; mult = mult < 0.1 ? 0.1 : mult; let cpnl = t.pnl * mult; netProfit += cpnl;
                 currentBalance += cpnl;
                 if (cpnl > 0) wins++; else losses++;
                 
