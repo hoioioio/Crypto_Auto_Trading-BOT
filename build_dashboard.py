@@ -235,9 +235,9 @@ def build():
             let symbolData = {{}};
 
             for (let t of filtered) {{
-                let mult = currentBalance / 250; mult = mult < 0.1 ? 0.1 : mult; let cpnl = t.pnl * mult; netProfit += cpnl;
-                currentBalance += cpnl;
-                if (cpnl > 0) wins++; else losses++;
+                netProfit += t.pnl;
+                currentBalance += t.pnl;
+                if (t.pnl > 0) wins++; else losses++;
                 
                 if (currentBalance > peak) peak = currentBalance;
                 const drawdown = (peak - currentBalance) / peak * 100;
@@ -248,19 +248,19 @@ def build():
                 const monthKey = dateObj.getFullYear() + '-' + String(dateObj.getMonth() + 1).padStart(2, '0');
                 if(!monthlyData[monthKey]) monthlyData[monthKey] = {{pnl:0, trades:0, wins:0, loss:0, winPnl:0, lossPnl:0}};
                 
-                monthlyData[monthKey].pnl += cpnl;
+                monthlyData[monthKey].pnl += t.pnl;
                 monthlyData[monthKey].trades++;
-                if(t.pnl > 0) {{ monthlyData[monthKey].wins++; monthlyData[monthKey].winPnl += cpnl; }}
-                else {{ monthlyData[monthKey].loss++; monthlyData[monthKey].lossPnl += cpnl; }}
+                if(t.pnl > 0) {{ monthlyData[monthKey].wins++; monthlyData[monthKey].winPnl += t.pnl; }}
+                else {{ monthlyData[monthKey].loss++; monthlyData[monthKey].lossPnl += t.pnl; }}
 
                 // Symbol grouping
                 const sym = t.symbol;
                 if(!symbolData[sym]) symbolData[sym] = {{pnl:0, trades:0, wins:0, loss:0, winPnl:0, lossPnl:0}};
                 
-                symbolData[sym].pnl += cpnl;
+                symbolData[sym].pnl += t.pnl;
                 symbolData[sym].trades++;
-                if(t.pnl > 0) {{ symbolData[sym].wins++; symbolData[sym].winPnl += cpnl; }}
-                else {{ symbolData[sym].loss++; symbolData[sym].lossPnl += cpnl; }}
+                if(t.pnl > 0) {{ symbolData[sym].wins++; symbolData[sym].winPnl += t.pnl; }}
+                else {{ symbolData[sym].loss++; symbolData[sym].lossPnl += t.pnl; }}
             }}
 
             const winRate = filtered.length > 0 ? (wins / filtered.length) * 100 : 0;
