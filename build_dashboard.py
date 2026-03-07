@@ -124,6 +124,10 @@ def build():
                 <h3>총 손익 (Total PnL)</h3>
                 <div class="stat-value" id="valNetProfit">$0</div>
             </div>
+            <div class="summary-card" style="background-color: #f1f8ff; border-color: #cce5ff;">
+                <h3>최종 자산 (Final Equity)</h3>
+                <div class="stat-value" id="valFinalEquity" style="color: #004085;">$0</div>
+            </div>
             <div class="summary-card">
                 <h3>총 거래 (Total Trades)</h3>
                 <div class="stat-value" id="valTrades" style="color: #212529;">0</div>
@@ -204,6 +208,15 @@ def build():
     <script>
         const allTrades = {trades_json};
         
+        // 🌟 Pre-calculate exact Account Equity for EVERY trade before filtering
+        // 🌟 Pre-calculate exact Account Equity & Return % for EVERY trade
+        let globalEquity = 1000;
+        for (let t of allTrades) {{
+            t.ret_pct = t.pnl / globalEquity;
+            globalEquity += t.pnl;
+            t.account_equity = globalEquity;
+        }}
+        
         let charts = {{}};
 
         function formatUSD(val) {{
@@ -228,19 +241,22 @@ def build():
 
             // 1. Overall Stats
             let netProfit = 0, wins = 0, losses = 0;
-            let peak = 1000, currentBalance = 1000, maxDrawdown = 0;
+            let peakObj = 1000, maxDrawdown = 0;
+            let virtualEquity = 1000;
             
             // Map for Monthly / Symbol
             let monthlyData = {{}};
             let symbolData = {{}};
 
             for (let t of filtered) {{
-                netProfit += t.pnl;
-                currentBalance += t.pnl;
-                if (t.pnl > 0) wins++; else losses++;
+                let v_pnl = virtualEquity * t.ret_pct;
+                netProfit += v_pnl;
+                virtualEquity += v_pnl;
                 
-                if (currentBalance > peak) peak = currentBalance;
-                const drawdown = (peak - currentBalance) / peak * 100;
+                if (v_pnl > 0) wins++; else losses++;
+                
+                if (virtualEquity > peakObj) peakObj = virtualEquity;
+                const drawdown = (peakObj - virtualEquity) / peakObj * 100;
                 if (drawdown > maxDrawdown) maxDrawdown = drawdown;
 
                 // Monthly grouping
@@ -248,19 +264,19 @@ def build():
                 const monthKey = dateObj.getFullYear() + '-' + String(dateObj.getMonth() + 1).padStart(2, '0');
                 if(!monthlyData[monthKey]) monthlyData[monthKey] = {{pnl:0, trades:0, wins:0, loss:0, winPnl:0, lossPnl:0}};
                 
-                monthlyData[monthKey].pnl += t.pnl;
+                monthlyData[monthKey].pnl += v_pnl;
                 monthlyData[monthKey].trades++;
-                if(t.pnl > 0) {{ monthlyData[monthKey].wins++; monthlyData[monthKey].winPnl += t.pnl; }}
-                else {{ monthlyData[monthKey].loss++; monthlyData[monthKey].lossPnl += t.pnl; }}
+                if(v_pnl > 0) {{ monthlyData[monthKey].wins++; monthlyData[monthKey].winPnl += v_pnl; }}
+                else {{ monthlyData[monthKey].loss++; monthlyData[monthKey].lossPnl += v_pnl; }}
 
                 // Symbol grouping
                 const sym = t.symbol;
                 if(!symbolData[sym]) symbolData[sym] = {{pnl:0, trades:0, wins:0, loss:0, winPnl:0, lossPnl:0}};
                 
-                symbolData[sym].pnl += t.pnl;
+                symbolData[sym].pnl += v_pnl;
                 symbolData[sym].trades++;
-                if(t.pnl > 0) {{ symbolData[sym].wins++; symbolData[sym].winPnl += t.pnl; }}
-                else {{ symbolData[sym].loss++; symbolData[sym].lossPnl += t.pnl; }}
+                if(v_pnl > 0) {{ symbolData[sym].wins++; symbolData[sym].winPnl += v_pnl; }}
+                else {{ symbolData[sym].loss++; symbolData[sym].lossPnl += v_pnl; }}
             }}
 
             const winRate = filtered.length > 0 ? (wins / filtered.length) * 100 : 0;
@@ -269,6 +285,8 @@ def build():
             const profitEl = document.getElementById('valNetProfit');
             profitEl.textContent = formatUSD(netProfit);
             profitEl.className = 'stat-value ' + colorClass(netProfit);
+
+            document.getElementById('valFinalEquity').textContent = formatUSD(virtualEquity);
 
             document.getElementById('valTrades').textContent = filtered.length;
             document.getElementById('valWinRate').textContent = winRate.toFixed(2) + '%';
