@@ -7,11 +7,7 @@
 
 ---
 
-<<<<<<< HEAD
-## 🏦 6개년 백테스트 성과 (2020.01 - 2026.03)
-=======
 ## 🏦 6개년 기관급(Institutional-Grade) 백테스트 성과 (2020.01 - 2026.03)
->>>>>>> a4909ec (docs: Add benchmarking chart comparing Bot Equity vs BTC Buy&Hold)
 본 프로젝트는 단순한 과거 커브피팅(Curve-fitting) 수익률이 아닌, 다양한 제약조건을 걸고 실제(Reality-check) 구조로 실험했습니다.
 
 ### 🛡️ 백테스트 제약 조건 (Institutional Constraints 적용)
