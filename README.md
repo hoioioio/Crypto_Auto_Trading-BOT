@@ -7,7 +7,11 @@
 
 ---
 
+<<<<<<< HEAD
 ## 🏦 6개년 백테스트 성과 (2020.01 - 2026.03)
+=======
+## 🏦 6개년 기관급(Institutional-Grade) 백테스트 성과 (2020.01 - 2026.03)
+>>>>>>> a4909ec (docs: Add benchmarking chart comparing Bot Equity vs BTC Buy&Hold)
 본 프로젝트는 단순한 과거 커브피팅(Curve-fitting) 수익률이 아닌, 다양한 제약조건을 걸고 실제(Reality-check) 구조로 실험했습니다.
 
 ### 🛡️ 백테스트 제약 조건 (Institutional Constraints 적용)
@@ -33,6 +37,8 @@
 
 > 27.26%의 승률임에도 불구하고 **Sortino Ratio 12.19**를 기록한 것은, 추세 발생 시 피라미딩(Pyramiding)을 통해 수익을 폭발적으로 불리고 횡보장에서는 KAMA로 손실을 최소화했음을 보입니다. 
 28.45%의 통제된 MDD는 하락장이 오더라도 잔고가 반토막 나지 않게 막아내는 **1.25% Realized Equity Fractional Sizing (실현 자산 기반 동적 베팅)** 구축의 결과입니다.
+
+![Strategy Equity vs Bitcoin Benchmark](benchmark_chart.png)
 
 ### 💎 스트레스 테스트 지표 (Stress Test Metrics)
 단순한 전체 기간 누적 데이터를 넘어, 다각적 방어력 검증을 통과했습니다.
