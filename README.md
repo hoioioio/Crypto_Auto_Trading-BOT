@@ -1,6 +1,7 @@
 # 📈 Crypto_Auto_Trading-BOT (KAMA 기반 추세 추종 시스템)
 
 [🚀 인터랙티브 백테스트 대시보드 보기 (Interactive Dashboard)](https://hoihy.github.io/Crypto_Auto_Trading-BOT/)
+(위 링크를 통해, 원하시는 기간을 지정하면 백테스트 결과를 볼 수 있습니다)
 
 본 프로젝트는 바이낸스 선물(Binance Futures) 시장을 타겟으로 한 **데이터 기반의 시스템 트레이딩 엔진**입니다. 시장 변동성에 따라 반응 속도를 조절하는 **적응형 이동평균(KAMA)**, **3단계 피라미딩(Scaling-in)** 로직을 통해 안정적인 우상향 수익 곡선을 추구합니다.
 
