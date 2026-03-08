@@ -426,7 +426,9 @@ def build():
 
     with open('C:/Crypto_Auto_Trading-BOT/index.html', 'w', encoding='utf-8') as f:
         f.write(html_content)
-    print("✅ Rich HTML Dashboard updated (Root Directory)!")
+    with open('C:/Crypto_Auto_Trading-BOT/docs/index.html', 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    print("✅ Rich HTML Dashboard updated (Root & Docs Directory)!")
 
 if __name__ == "__main__":
     build()
