@@ -21,5 +21,5 @@ logs/
 .vscode/
 .idea/
 
-# Local Dashboard Output
-docs/
+# Local Dashboard Output (tracked for GitHub Pages)
+# docs/ - INTENTIONALLY NOT IGNORED: needed for GitHub Pages deployment

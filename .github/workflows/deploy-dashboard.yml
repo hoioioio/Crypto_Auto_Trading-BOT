@@ -1,0 +1,54 @@
+name: Deploy Dashboard to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas numpy
+
+      - name: Run Dashboard Builder
+        run: python build_dashboard.py
+
+      - name: Commit updated dashboard to gh-pages branch
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          # Save both files before switching branch
+          cp index.html /tmp/index.html
+          cp docs/index.html /tmp/docs_index.html
+
+          git fetch origin gh-pages || true
+          git checkout -B gh-pages origin/gh-pages 2>/dev/null || git checkout --orphan gh-pages
+
+          # Remove all existing tracked files if any
+          git rm -rf . --quiet || true
+
+          # Restore the fresh dashboard
+          cp /tmp/index.html index.html
+          mkdir -p docs
+          cp /tmp/docs_index.html docs/index.html
+
+          git add index.html docs/index.html
+          git diff --staged --quiet && echo "No changes to commit" || (git commit -m "auto: rebuild dashboard [skip ci]" && git push -f origin gh-pages)
